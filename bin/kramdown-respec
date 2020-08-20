@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require 'kramdown-respec'
+
+require 'optparse'
+require 'ostruct'
+
+$options = OpenStruct.new
+op = OptionParser.new do |opts|
+  opts.banner = "Usage: kramdown-respec [options] file.md > file.html"
+end
+op.parse!
+
+doc = Kramdown::Document.new(input, options)
+$stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
+puts doc.to_htmlRESPEC
