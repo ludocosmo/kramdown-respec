@@ -73,32 +73,6 @@ module Kramdown
 
       include ::Kramdown
 
-      # Create a new Kramdown parser object with the given +options+.
-      def initialize(source, options)
-        super
-
-        reset_env
-
-        @alds = {}
-        @footnotes = {}
-        @link_defs = {}
-        update_link_definitions(@options[:link_defs])
-
-        @block_parsers = [:blank_line, :codeblock, :codeblock_fenced, :blockquote, :atx_header,
-                          :horizontal_rule, :list, :definition_list, :block_html, :setext_header,
-                          :block_math, :table, :footnote_definition, :link_definition, :abbrev_definition,
-                          :block_extensions, :eob_marker, :paragraph, :respectests]
-        @span_parsers =  [:emphasis, :codespan, :autolink, :span_html, :footnote_marker, :link, :smart_quotes, :inline_math,
-                         :span_extensions, :html_entity, :typographic_syms, :line_break, :escaped_chars,
-                         :respectests]
-
-      end
-      # def initialize(source, options)
-      #   super
-      #   @span_parsers.unshift(:respectests)
-      #   @block_parsers.unshift(:respectests)
-      # end
-
       # List of possible annotations
       # If annotation is not in the list, then it should be a reference to a test
       RESPECTESTS_ANNOTATIONS = ["untestable", "informative", "note", "no-test-needed", "needs-test"]
@@ -139,21 +113,6 @@ module Kramdown
           false
         end
       end
-      # Parse the string +str+ and extract the annotation or the list of tests
-      # def parse_block_extensions
-      #   if @src.scan(RESPECTESTS_START)
-      #     last_child = @tree.children.last
-      #     if last_child.type == :header
-      #       parse_respec_tests_list(@src[1], last_child.options[:respec_section] ||= {})
-      #       @tree.children << new_block_el(:eob, :respec_section)
-      #     else
-      #       parse_respec_tests_list(@src[1], last_child.options[:ial] ||= {})
-      #       @tree.children << new_block_el(:eob, :ial)
-      #     end
-      #   else
-      #     super
-      #   end
-      # end
 
       # Parse the string +str+ and extract the annotation or the list of tests
       def parse_respec_tests_list(str, opts)
@@ -176,54 +135,6 @@ module Kramdown
         end
       end
 
-      # Parse the extension span at the current location.
-      def parse_span_extensions
-        if @src.check(RESPECTESTS_START)
-          if (last_child = @tree.children.last) && last_child.type != :text
-            @src.pos += @src.matched_size
-            attr = {}
-            parse_respec_tests_list(@src[1], attr)
-            update_ial_with_ial(last_child.options[:ial] ||= {}, attr)
-            update_attr_with_ial(last_child.attr, attr)
-          else
-            warning("Found span respec-test after text - ignoring it")
-            add_text(@src.getch)
-          end
-        # Original parser of span extension
-        elsif @src.check(EXT_SPAN_START)
-          parse_extension_start_tag(:span)
-        elsif @src.check(IAL_SPAN_START)
-          if @tree.children.last && @tree.children.last.type != :text
-            @src.pos += @src.matched_size
-            attr = Utils::OrderedHash.new
-            parse_attribute_list(@src[1], attr)
-            update_ial_with_ial(@tree.children.last.options[:ial] ||= Utils::OrderedHash.new, attr)
-            update_attr_with_ial(@tree.children.last.attr, attr)
-          else
-            warning("Found span IAL after text - ignoring it")
-            add_text(@src.getch)
-          end
-        else
-          add_text(@src.getch)
-        end
-      end
-      # Parse the extension span at the current location.
-      # def parse_span_extensions
-      #   if @src.check(RESPECTESTS_START)
-      #     if (last_child = @tree.children.last) && last_child.type != :text
-      #       @src.pos += @src.matched_size
-      #       attr = {}
-      #       parse_respec_tests_list(@src[1], attr)
-      #       update_ial_with_ial(last_child.options[:ial] ||= {}, attr)
-      #       update_attr_with_ial(last_child.attr, attr)
-      #     else
-      #       warning("Found span respec-test after text - ignoring it")
-      #       add_text(@src.getch)
-      #     end
-      #   else
-      #     super
-      #   end
-      # end
 
       define_parser(:respectests, RESPECTESTS_START, '{:&')
 
